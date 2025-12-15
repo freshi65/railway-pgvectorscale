@@ -11,8 +11,15 @@ chown -R postgres:postgres /home/postgres/pgdata
 if [ ! -s "$PGDATA/PG_VERSION" ]; then
     su postgres -c "/usr/lib/postgresql/17/bin/initdb -D $PGDATA"
     
-    # Configure pg_hba.conf for connections
-    echo "host all all 0.0.0.0/0 md5" >> "$PGDATA/pg_hba.conf"
+    # Configure pg_hba.conf for connections (IPv4 + IPv6)
+    cat > "$PGDATA/pg_hba.conf" <<EOF
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            md5
+host    all             all             0.0.0.0/0               md5
+host    all             all             ::0/0                   md5
+EOF
+    
+    # Configure postgresql.conf
     echo "listen_addresses='*'" >> "$PGDATA/postgresql.conf"
     
     # Start temporarily to create user/db
